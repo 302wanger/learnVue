@@ -1,127 +1,75 @@
 <template>
   <div class="player"
-       v-show="playlist.length>0">
-    <transition name="normal">
-      <div class="normal-player"
-           v-show="fullScreen">
-        <div class="background">
-          <img width="100%"
-               height="100%"
-               :src="currentSong.image">
+       v-show="playlist.length > 0">
+    <div class="normal-player"
+         v-show="fullScreen">
+      <div class="background">
+        <img width="100%"
+             height="100%"
+             alt=""
+             :src="currentSong.image">
+      </div>
+      <div class="top">
+        <div class="back"
+             @click="back">
+          <i class="icon-back"></i>
         </div>
-        <div class="top">
-          <div class="back"
-               @click="back">
-            <i class="icon-back"></i>
-          </div>
-          <h1 class="title"
-              v-html="currentSong.name"></h1>
-          <h2 class="subtitle"
-              v-html="currentSong.singer"></h2>
-        </div>
-        <div class="middle">
-          <div class="middle-l"
-               ref="middleL">
-            <div class="cd-wrapper"
-                 ref="cdWrapper">
-              <div class="cd"
-                   :class="cdCls">
-                <img class="image"
-                     :src="currentSong.image">
-              </div>
-            </div>
-            <div class="playing-lyric-wrapper">
-              <div class="playing-lyric"></div>
-            </div>
-          </div>
-          <scroll class="middle-r"
-                  ref="lyricList">
-            <div class="lyric-wrapper">
-              <div v-if="currentLyric">
-                <p ref="lyricLine"
-                   class="text"
-                   v-for="(line,index) in currentLyric.lines">{{line.txt}}</p>
-              </div>
-            </div>
-          </scroll>
-        </div>
-        <div class="bottom">
-          <div class="dot-wrapper">
-            <span class="dot"
-                  :class="{'active':currentShow==='cd'}"></span>
-            <span class="dot"
-                  :class="{'active':currentShow==='lyric'}"></span>
-          </div>
-          <div class="progress-wrapper">
-            <span class="time time-l"></span>
-            <div class="progress-bar-wrapper">
-              <progress-bar></progress-bar>
-            </div>
-            <span class="time time-r"></span>
-          </div>
-          <div class="operators">
-            <div class="icon i-left"
-                 @click="changeMode">
-              <i :class="iconMode"></i>
-            </div>
-            <div class="icon i-left"
-                 :class="disableCls">
-              <i @click="prev"
-                 class="icon-prev"></i>
-            </div>
-            <div class="icon i-center"
-                 :class="disableCls">
-              <i @click="togglePlaying"
-                 :class="playIcon"></i>
-            </div>
-            <div class="icon i-right"
-                 :class="disableCls">
-              <i @click="next"
-                 class="icon-next"></i>
-            </div>
-            <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+        <h1 class="title"
+            v-html="currentSong.name"></h1>
+        <h2 class="subtitle"
+            v-html="currentSong.singer"></h2>
+      </div>
+      <div class="middle">
+        <div class="middle-l">
+          <div class="cd-wrapper">
+            <div class="cd">
+              <img class="image"
+                   alt=""
+                   :src="currentSong.image">
             </div>
           </div>
         </div>
       </div>
-    </transition>
-    <transition name="mini">
-      <div class="mini-player"
-           v-show="!fullScreen"
-           @click="open">
-        <div class="icon">
-          <img :class="cdCls"
-               width="40"
-               height="40"
-               :src="currentSong.image">
-        </div>
-        <div class="text">
-          <h2 class="name"
-              v-html="currentSong.name"></h2>
-          <p class="desc"
-             v-html="currentSong.singer"></p>
-        </div>
-        <div class="control">
-          <progress-circle :radius="radius"
-                           :percent="percent">
-            <i @click.stop="togglePlaying"
-               class="icon-mini"
-               :class="miniIcon"></i>
-          </progress-circle>
-        </div>
-        <div class="control">
-          <i class="icon-playlist"></i>
+      <div class="bottom">
+        <div class="operators">
+          <div class="icon i-left">
+            <i class="icon-sequence"></i>
+          </div>
+          <div class="icon i-left">
+            <i class="icon-prev"></i>
+          </div>
+          <div class="icon i-center">
+            <i class="icon-play"></i>
+          </div>
+          <div class="icon i-right">
+            <i class="icon-next"></i>
+          </div>
+          <div class="icon i-right">
+            <i class="icon icon-not-favorite"></i>
+          </div>
         </div>
       </div>
-    </transition>
-
-    <audio ref="audio"
-           :src="currentSong.url"
-           @canplay="ready"
-           @error="error"
-           @timeupdate="updateTime"
-           @ended="end"></audio>
+    </div>
+    <div class="mini-player"
+         v-show="!fullScreen"
+         @click="open">
+      <div class="icon">
+        <img width="40"
+             height="40"
+             alt=""
+             :src="currentSong.image">
+      </div>
+      <div class="text">
+        <h2 class="name"
+            v-html="currentSong.name"></h2>
+        <p class="desc"
+           v-html="currentSong.singer"></p>
+      </div>
+      <div class="control"></div>
+      <div class="control">
+        <i class="icon-playlist"></i>
+      </div>
+    </div>
   </div>
 </template>
 

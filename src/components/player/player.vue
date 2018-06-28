@@ -1,11 +1,7 @@
 <template>
   <div class="player"
        v-show="playlist.length > 0">
-    <transition name="normal"
-                @enter="enter"
-                @after-enter="afterEnter"
-                @leave="leave"
-                @after-leave="afterLeave">
+    <transition name="normal">
       <div class="normal-player"
            v-show="fullScreen">
         <div class="background">
@@ -27,7 +23,8 @@
         <div class="middle">
           <div class="middle-l">
             <div class="cd-wrapper">
-              <div class="cd">
+              <div class="cd"
+                   :class="cdCls">
                 <img class="image"
                      alt=""
                      :src="currentSong.image">
@@ -44,7 +41,8 @@
               <i class="icon-prev"></i>
             </div>
             <div class="icon i-center">
-              <i class="icon-play"></i>
+              <i @click="togglePlaying"
+                 :class="playIcon"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-next"></i>
@@ -61,7 +59,8 @@
            v-show="!fullScreen"
            @click="open">
         <div class="icon">
-          <img width="40"
+          <img :class="cdCls"
+               width="40"
                height="40"
                alt=""
                :src="currentSong.image">
@@ -72,25 +71,35 @@
           <p class="desc"
              v-html="currentSong.singer"></p>
         </div>
-        <div class="control"></div>
+        <div class="control">
+          <i @click.stop="togglePlaying"
+             :class="miniIcon"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio ref="audio"
+           :src="currentSong.url"></audio>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from 'vuex'
-import animations from 'create-keyframe-animation'
-import { prefixStyle } from 'common/js/dom'
-
-const transform = prefixStyle('transform')
 
 export default {
   computed: {
-    ...mapGetters(['fullScreen', 'playlist', 'currentSong'])
+    cdCls() {
+      return this.playing ? 'play' : 'play pause'
+    },
+    playIcon() {
+      return this.playing ? 'icon-pause' : 'icon-play'
+    },
+    miniIcon() {
+      return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
+    ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing'])
   },
   methods: {
     back() {
@@ -99,48 +108,8 @@ export default {
     open() {
       this.setFullScreen(true)
     },
-    enter(el, done) {
-      const { x, y, scale } = this._getPosAndScale()
-
-      let animation = {
-        0: {
-          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
-        },
-        60: {
-          transform: `translate3d(0,0,0) scale(1.1)`
-        },
-        100: {
-          transform: `translate3d(0,0,0) scale(1)`
-        }
-      }
-
-      animations.registerAnimation({
-        name: 'move',
-        animation,
-        presets: {
-          duration: 400,
-          easing: 'linear'
-        }
-      })
-
-      animations.runAnimation(this.$refs.cdWrapper, 'move', done)
-    },
-    afterEnter() {
-      animations.unregisterAnimation('move')
-      this.$refs.cdWrapper.style.animation = ''
-    },
-    leave(el, done) {
-      this.$refs.cdWrapper.style.transition = 'all 0.4s'
-      const { x, y, scale } = this._getPosAndScale()
-      // eslint-disable-next-line
-      this.$refs.cdWrapper.style[
-        transform
-      ] = `translate3d(${x}px,${y}px,0) scale(${scale})`
-      this.$refs.cdWrapper.addEventListener('transitionend', done)
-    },
-    afterLeave() {
-      this.$refs.cdWrapper.style.transition = ''
-      this.$refs.cdWrapper.style[transform] = ''
+    togglePlaying() {
+      this.setPlayingState(!this.playing)
     },
     _getPosAndScale() {
       const targetWidth = 40
@@ -158,8 +127,22 @@ export default {
       }
     },
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE'
     })
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 }
 </script>

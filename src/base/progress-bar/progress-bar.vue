@@ -1,9 +1,14 @@
 <template>
   <div class="progress-bar"
-       ref="progressBar">
+       ref="progressBar"
+       @click="progressClick">
     <div class="bar-inner">
       <div class="progress"></div>
-      <div class="progress-btn-wrapper">
+      <div class="progress-btn-wrapper"
+           ref="progressBtn"
+           @touchstart.prevent="progressTouchStart"
+           @touchmove.prevent="progressTouchMe"
+           @touched="progressTouchEnd">
         <div class="progress-btn"></div>
       </div>
     </div>
@@ -24,15 +29,48 @@ export default {
       default: 0
     }
   },
+  created() {
+    this.touch = {}
+  },
   methods: {
     _offset(offsetWidth) {
       this.$refs.style.width = `${offsetWidth}px`
       this.$resf.progressBtn.style[transform] = `translate3d(${offsetWidth})`
+    },
+    _triggerPercent() {
+      const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+      const percent = this.$refs.progress.clientWidth / barWidth
+      this.$emit('percentChange', percent)
+    },
+    progressTouchStart(e) {
+      this.touch.initiated = true
+      this.touch.startX = e.touches[0].pageX
+      this.touch.left = this.$refs.progress.clientWidth
+    },
+    progressTouchMe(e) {
+      if (!this.touch.initiated) {
+        return
+      }
+
+      const deltax = e.touches[0].pageX - this.touch.startX
+      const offsetWidth = Math.min(
+        this.$refs.progressBar.clientWidth - progressBtnWidth,
+        Math.max(0, this.touch.left + deltax)
+      )
+      this._offset(offsetWidth)
+    },
+    progressTouchEnd() {
+      this.touch.initiated = false
+      this._triggerPercent()
+    },
+    progressClick(e) {
+      this._offset(e.offsetX)
+      this._triggerPercent()
     }
   },
   watch: {
     percent(newPercent) {
-      if (newPercent >= 0) {
+      if (newPercent >= 0 && !this.touch.initiated) {
         const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
         const offsetWidth = newPercent * barWidth
         this._offset(offsetWidth)
